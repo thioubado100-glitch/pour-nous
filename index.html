@@ -34,7 +34,7 @@ input:focus-visible,select:focus-visible,button:focus-visible{outline:2px solid 
 nav{position:fixed;bottom:0;left:0;right:0;background:var(--card);border-top:1px solid var(--line);display:flex;justify-content:space-around;padding:0 0 env(safe-area-inset-bottom)}
 nav button{flex:1;background:none;border:0;border-top:2px solid transparent;color:var(--mut);padding:14px 2px;font-size:13px;cursor:pointer}
 nav button.on{color:var(--ac);border-top-color:var(--ac);font-weight:600}
-.fab{position:fixed;right:18px;bottom:calc(76px + env(safe-area-inset-bottom));width:56px;height:56px;border-radius:50%;font-size:30px;padding:0;box-shadow:0 4px 14px #0006}
+.fab{position:fixed;right:18px;bottom:calc(var(--nh,60px) + 16px);width:56px;height:56px;border-radius:50%;font-size:30px;padding:0;box-shadow:0 4px 14px #0006}
 .sheet{position:fixed;inset:0;background:#0009;display:flex;align-items:flex-end;justify-content:center;z-index:9}
 .sheet>div{background:var(--bg);width:100%;max-width:720px;border-radius:16px 16px 0 0;padding:18px 16px calc(16px + env(safe-area-inset-bottom));max-height:90vh;overflow:auto}
 .msg{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:10px 13px;margin:8px 0}
@@ -47,7 +47,7 @@ nav button.on{color:var(--ac);border-top-color:var(--ac);font-weight:600}
 .prog{height:4px;background:var(--line);border-radius:2px;margin:10px 0 4px}.prog i{display:block;height:100%;background:var(--ac);border-radius:2px;transition:width .3s}
 .av{width:38px;height:38px;border-radius:50%;background:var(--card);border:1px solid var(--line);display:grid;place-items:center;font-weight:600;font-size:14px;flex:none;color:var(--ac)}
 .msg.me{margin-left:14%;background:var(--ac);color:var(--on);border-color:transparent}.msg.me b,.msg.me small{color:var(--on);opacity:.85}
-.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(84px + env(safe-area-inset-bottom));background:var(--tx);color:var(--bg);padding:9px 16px;border-radius:8px;z-index:20;font-size:15px}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(var(--nh,60px) + 20px);background:var(--tx);color:var(--bg);padding:9px 16px;border-radius:8px;z-index:20;font-size:15px}
 @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}}
 </style></head><body><div id="app"></div>
 <script>
@@ -102,14 +102,17 @@ function login(mode='in'){
     if(r.error)$('#err').textContent=r.error.message};
 }
 function render(){
+  const dr=$('#mb')?.value,had=document.activeElement?.id==='mb';
   const tabs=[['home','','Accueil'],['tasks','','Tâches'],['agenda','','Agenda'],['chat','','Messages'],['docs','','Fichiers'],['members','','Promo']];
   app.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center"><div class="brand">Pour nous</div><span><button class="btn g" id="th">${THL[TH]}</button> <button class="btn g" id="out">Déconnexion</button></span></div>
   <div id="main">${V[S.view]()}</div>
   <nav>${tabs.map(t=>`<button class="${S.view===t[0]?'on':''}" data-v="${t[0]}">${t[2]}</button>`).join('')}</nav>`;
   $('#out').onclick=()=>sb.auth.signOut();
+  document.documentElement.style.setProperty('--nh',($('nav').offsetHeight||60)+'px');
   $('#th').onclick=()=>{setTheme({dark:'light',light:'auto',auto:'dark'}[TH]);render()};
   document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{S.view=b.dataset.v;render()});
   W[S.view]?.();
+  if(dr&&$('#mb')){$('#mb').value=dr;if(had)$('#mb').focus()}
 }
 function sheet(html){const d=document.createElement('div');d.className='sheet';d.innerHTML=`<div>${html}</div>`;d.onclick=e=>{if(e.target===d)d.remove()};document.body.append(d);return d}
 async function del(table,id,q){if(!confirm(q))return;const r=await sb.from(table).delete().eq('id',id);if(r.error)return alert('Erreur : '+r.error.message);await load();render()}
@@ -149,7 +152,7 @@ const V={
  agenda(){const up=S.events.filter(e=>new Date(e.starts_at)>Date.now()-864e5);
   return `<h1>Agenda</h1>${up.length?up.map(e=>evRow(e,1)).join(''):'<p class="mut c" style="margin-top:30px">Aucun événement. Appuie sur + pour en créer un.</p>'}<button class="btn fab" id="add">+</button>`},
  chat(){return `<h1>Messages</h1>${S.msgs.map(m=>`<div class="msg ${m.author===S.user.id?'me':''}"><b>${esc(m.author_name)}</b> <small>${fmt(m.created_at)}</small>${own(m,'author')?` <button class="ic" style="font-size:14px;color:inherit" data-xm="${m.id}">✕</button>`:''}<div>${esc(m.body)}</div></div>`).join('')||'<p class="mut c">Aucun message. Écris le premier.</p>'}<div style="height:60px"></div>
-  <div style="position:fixed;left:0;right:0;bottom:calc(52px + env(safe-area-inset-bottom));max-width:720px;margin:auto;padding:8px 16px;background:var(--bg);display:flex;gap:8px"><input id="mb" placeholder="Écrire à la promo…" style="margin:0"><button class="btn" id="send">Envoyer</button></div>`},
+  <div style="position:fixed;left:0;right:0;bottom:var(--nh,60px);z-index:3;max-width:720px;margin:auto;padding:8px 16px;background:var(--bg);display:flex;gap:8px"><input id="mb" placeholder="Écrire à la promo…" style="margin:0"><button class="btn" id="send">Envoyer</button></div>`},
  docs(){return `<h1>Fichiers</h1>${S.docs.length?S.docs.map(d=>`<div class="row"><div class="date"><b style="font-size:13px;padding:5px 0">${esc((d.title.split('.').pop()||'').slice(0,4).toUpperCase())}</b></div><div class="t">${esc(d.title)}<small>${d.size?(d.size/1048576).toFixed(1)+' Mo · ':''}${fmt(d.created_at)}</small></div><button class="btn g" data-dl="${d.id}">Ouvrir</button>${own(d,'uploaded_by')?`<button class="ic" data-xd="${d.id}">✕</button>`:''}</div>`).join(''):'<p class="mut c" style="margin-top:30px">Aucun fichier partagé.</p>'}
   <button class="btn fab" id="add">+</button>`},
  members(){return `<h1>La promo</h1><h2>${S.members.length} membres</h2>${S.members.map(m=>`<div class="row"><div class="av">${esc(ini(m.name))}</div><div class="t">${esc(m.name)}<small>${m.role==='admin'?'Administrateur':'Étudiant'}</small></div>${S.me.role==='admin'&&m.id!==S.user.id?`<button class="btn g" data-r="${m.id}" data-ro="${m.role}">${m.role==='admin'?'Retirer admin':'Rendre admin'}</button>`:''}</div>`).join('')}
@@ -171,12 +174,12 @@ const W={
    s.querySelector('#ok').onclick=async()=>{const t=s.querySelector('#et').value.trim(),d=s.querySelector('#ed').value;if(!t||!d)return;
     await sb.from('events').insert({title:t,starts_at:new Date(d).toISOString(),location:s.querySelector('#el').value.trim()||null});s.remove()}}},
  chat(){scrollTo(0,document.body.scrollHeight);
-  const go=async()=>{const b=$('#mb').value.trim();if(!b)return;$('#mb').value='';await sb.from('messages').insert({body:b,author_name:S.me.name})};
+  const go=async()=>{const i=$('#mb'),b=i.value.trim();if(!b)return;const r=await sb.from('messages').insert({body:b,author_name:S.me.name||'Étudiant'});if(r.error)return toast('Erreur : '+r.error.message);i.value='';await load();render()};
   $('#send').onclick=go;$('#mb').onkeydown=e=>e.key==='Enter'&&go();
   document.querySelectorAll('[data-xm]').forEach(b=>b.onclick=()=>del('messages',b.dataset.xm,'Supprimer ce message ?'))},
  docs(){
   document.querySelectorAll('[data-dl]').forEach(b=>b.onclick=async()=>{const d=S.docs.find(x=>x.id===b.dataset.dl);
-   const {data}=await sb.storage.from('docs').createSignedUrl(d.path,120,{download:d.title});if(data)window.open(data.signedUrl,'_blank')});
+   const {data,error}=await sb.storage.from('docs').createSignedUrl(d.path,120,{download:d.title});if(error||!data)return toast('Erreur : '+(error?.message||'fichier introuvable'));location.href=data.signedUrl});
   document.querySelectorAll('[data-xd]').forEach(b=>b.onclick=async()=>{if(!confirm('Supprimer ?'))return;const d=S.docs.find(x=>x.id===b.dataset.xd);await sb.storage.from('docs').remove([d.path]);await sb.from('documents').delete().eq('id',d.id)});
   $('#add').onclick=()=>{const s=sheet(`<h1>Partager un document</h1><input id="df" type="file"><p class="err" id="er"></p><button class="btn" style="width:100%" id="ok">Envoyer (20 Mo max)</button>`);
    s.querySelector('#ok').onclick=async()=>{const f=s.querySelector('#df').files[0];if(!f)return;
