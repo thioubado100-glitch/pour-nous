@@ -178,7 +178,7 @@ const W={
     await sb.from('events').insert({title:t,starts_at:new Date(d).toISOString(),location:s.querySelector('#el').value.trim()||null});s.remove()}}},
  chat(){scrollTo(0,document.body.scrollHeight);
   const go=async()=>{const i=$('#mb'),b=i.value.trim();if(!b)return;const r=await sb.from('messages').insert({body:b,author_name:S.me.name||'Étudiant'});if(r.error)return toast('Erreur : '+r.error.message);i.value='';await load();render()};
-  $('#send').onclick=go;$('#mb').onkeydown=e=>e.key==='Enter'&&go();
+  $('#send').onclick=go;$('#mb').onkeydown=e=>{if(e.key==='Enter')go()};
   document.querySelectorAll('[data-xm]').forEach(b=>b.onclick=()=>del('messages',b.dataset.xm,'Supprimer ce message ?'))},
  docs(){
   document.querySelectorAll('[data-dl]').forEach(b=>b.onclick=async()=>{const d=S.docs.find(x=>x.id===b.dataset.dl);
